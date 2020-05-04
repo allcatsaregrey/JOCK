@@ -1,13 +1,41 @@
-# Author: Matthew C. McFee
-# Description: This module provides scraping functionality for
-# Yahoo Japan.
+# Author: Christian Vartanian
+# Description: General Scraper tailored for Yahoo Japan Auction Search Results
+# Current Feature Set: Price, Title, CSV Output
+# TODO: Scrape more data into CSV, potentially perform google translate on titles.
 
-# TODO: Functions to specify certain tags on Yahoo Japan (ie. brands),
-# functions to scrape Yahoo auctions search results for specified tag,
-# functions to store newly found actions with information into a database,
-# functions that specify foreign IP accesses to an auctions page and counts
-# said accesses.
+import html5lib
+import bs4 as bs
+from bs4 import BeautifulSoup
+import requests
+SEARCH = "rickowens"
+URL = "https://auctions.yahoo.co.jp/search/search?auccat=&tab_ex=commerce&ei=utf-8&aq=-1&oq=&sc_i=&exflg=1&p=" + SEARCH + "&x=0&y=0"
+r=requests.get(URL)
+filename = "JOCKReport.csv"
+f = open(filename,"w")
+headers = "Product_Name, Price in Yen \n"
+f.write(headers)
 
-if __name__ == "__main__":
+soup = BeautifulSoup(r.content, 'html5lib')
+products = soup.find_all("li",{"class":"Product"})
+titles = soup.find_all("a",{"class":"Product__titleLink"})
 
-    pass
+for entry in products:
+
+  #hunt price
+  price = entry.find_all("span", {"class":"Product__priceValue u-textRed"})
+  pricec = price[0]
+
+  #hunt title
+  title = entry.find_all("a",{"class":"Product__titleLink"})
+  titlec = title[0]
+  Tout = titlec["title"]
+  Pout = pricec.text
+  # print outputs
+  print(titlec["title"])
+  print("Price in Yen " + pricec.text)
+  print("\n")
+  
+  f.write(Tout.replace(",", "|") + "," + Pout.replace(",", "").replace("円","") + "\n")
+
+f.close()
+
