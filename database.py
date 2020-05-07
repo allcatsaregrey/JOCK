@@ -7,6 +7,7 @@
 # of the auction is available. We also need to add functions to
 # sort the auctions with in the database to certain specifications.
 
+import json
 
 class jock_data_base():
 
@@ -45,6 +46,10 @@ class jock_data_base():
 
         self.db = {}
 
+    def write_csv(self):
+
+        with open("db.txt", "w") as outfile:
+            json.dump(self.db, outfile) 
 
 if __name__ == "__main__":
     print("Please run the main program file.")
