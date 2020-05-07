@@ -13,16 +13,19 @@ import time
 
 filename = "JOCKreport.csv"
 f = open(filename,"w")
+
 #Translator Flag, will crash if turned on and running 10K+ results
+
 TFlag = 0
 if TFlag == 1:
-  headers = "Product_Name, Product_Name_English, Price_In_Yen, Time_Remaining, Bidders, Link \n"
+  headers = "Product_Name, Product_Name_English, Price_In_Yen, Time_Remaining, Bidders, ID, Link \n"
 else:
-  headers = "Product_Name, Price_In_Yen, Time_Remaining, Bidders, Link \n"
+  headers = "Product_Name, Price_In_Yen, Time_Remaining, Bidders, ID, Link \n"
   
 f.write(headers)
 
 SEARCH = "Comme Des Garcon"
+
 #PARSE AUCTIONS FIRST
 URL = "https://auctions.yahoo.co.jp/search/search?p=" + SEARCH + "&va="+SEARCH+"&fixed=2&exflg=0&b=1&n=100"
 r=requests.get(URL)
@@ -45,10 +48,11 @@ if binmaxint >= 15000:
 else:
   functbmax = binmaxint
 
+#Initialize page shift index variable
+page=1
 
-
-for page in range(14701, functamax , 100):
- 
+#Begin Auction Only Parse
+while page < functamax:
   pagestr=str(page)
   URL = "https://auctions.yahoo.co.jp/search/search?p=" + SEARCH + "&va="+SEARCH+"&fixed=2&exflg=0&b=" + pagestr + "&n=100"
   r=requests.get(URL)
@@ -59,7 +63,8 @@ for page in range(14701, functamax , 100):
   translator = Translator()
 
   for entry in products:
-
+    if page >= functamax-100  and functamax % 100 != 0:
+      break 
     #hunt price
     price = entry.find_all("span", {"class":"Product__priceValue u-textRed"})
     pricec = price[0]
@@ -87,6 +92,7 @@ for page in range(14701, functamax , 100):
     BdOut = bidc.text
     TiOut = timec.text.replace('日'," Days").replace('時間'," Hours").replace('分'," Minutes ").replace('秒'," Seconds ")
     Lout = titlec["href"]
+    IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/","") #Auction ID Output Only
     
     if TFlag == 1:
     #Translate Titles
@@ -99,7 +105,8 @@ for page in range(14701, functamax , 100):
     if TFlag == 1:
       print(EnOutStripped)
     print("Current Price in Yen " + pricec.text)
-    #print("Buy it now for " + bpricec.text)
+    
+
     print(TiOut)
     print(BdOut + " Bidders")
     print(Lout)
@@ -109,13 +116,18 @@ for page in range(14701, functamax , 100):
     print("\n")
     
     if TFlag == 1:
-      f.write(Tout.replace(",", "|") + "," + EnOutStripped + "," + Pout.replace(",", "").replace("円","") + "," + Lout + "\n")
+      f.write(Tout.replace(",", "|") + "," + EnOutStripped + "," + Pout.replace(",", "").replace("円","") + "," + IdOut + "," + Lout + "\n")
     else:
-      f.write(Tout.replace(",", "|") + "," + Pout.replace(",", "").replace("円","") + "," + TiOut + "," + BdOut + "," + Lout + "\n")
+      f.write(Tout.replace(",", "|") + "," + Pout.replace(",", "").replace("円","") + "," + TiOut + "," + BdOut + "," + IdOut + "," + Lout + "\n")
+  
+  page += 100
+
+# Reinitialize page
+page = 1
 
 #PARSE BUY IT NOW SECOND
 
-for page in range(1,functbmax,100):
+while page < functbmax:
  
   pagestr=str(page)
   URL = "https://auctions.yahoo.co.jp/search/search?p=" + SEARCH + "&va="+SEARCH+"&fixed=3&exflg=0&b=" + pagestr + "&n=100"
@@ -127,7 +139,8 @@ for page in range(1,functbmax,100):
   translator = Translator()
 
   for entry in products:
-
+    if page >= functbmax-100  and functbmax % 100 != 0:
+      break
     #hunt price
     price = entry.find_all("span", {"class":"Product__priceValue u-textRed"})
     pricec = price[0]
@@ -144,6 +157,7 @@ for page in range(1,functbmax,100):
     Pout = pricec.text
     Tout = titlec["title"]  
     Lout = titlec["href"]
+    IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/","") #Auction ID Output Only
     
     if TFlag == 1:
     #Translate Titles
@@ -155,7 +169,7 @@ for page in range(1,functbmax,100):
     print(Tout)
     if TFlag == 1:
       print(EnOutStripped)
-    print("Current Price in Yen " + pricec.text)
+    print("Buy it Now Price in Yen " + pricec.text)
     print(Lout)
     print(page)
     
@@ -163,8 +177,10 @@ for page in range(1,functbmax,100):
     print("\n")
     
     if TFlag == 1:
-      f.write(Tout.replace(",", "|") + "," + EnOutStripped + "," + Pout.replace(",", "").replace("円","") + "," + Lout + "\n")
+      f.write(Tout.replace(",", "|") + "," + EnOutStripped + "," + Pout.replace(",", "").replace("円","") + "," + IdOut + "," + Lout + "\n")
     else:
-      f.write(Tout.replace(",", "|") + "," + Pout.replace(",", "").replace("円","") + "," + "Buy It Now" + "," + "Buy It Now" + "," + Lout + "\n")
-  
+      f.write(Tout.replace(",", "|") + "," + Pout.replace(",", "").replace("円","") + "," + "Buy It Now" + "," + "Buy It Now" + "," + IdOut + "," + Lout + "\n")
+  page += 100
+
 f.close()
+print("Parse Complete JOCK will now lift Heavy Rocks")
