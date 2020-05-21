@@ -15,6 +15,7 @@ import database
 
 TFlag = 0
 
+BINFlag = 0
 
 def get_search_():
 
@@ -57,10 +58,22 @@ def set_funct_max(auctionmaxint, binmaxint):
     return functamax, functbmax
 
 
+def console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag):
+            print(Tout)
+            if BINFlag == 1:
+                print("BIN " + pricec.text)
+            else:
+                print("Current Price in Yen " + pricec.text)
+            print(Lout)
+            print(page)
+            print("\n")
+    
 def auction_only_parse(database, functamax, SEARCH):
 
     # Initialize page shift index variable
     page = 1
+    #set auction context flag 0 = Auction 1 = BIN
+    BINFlag = 0
     # Begin Auction Only Parse
     while page < functamax:
         pagestr = str(page)
@@ -74,7 +87,7 @@ def auction_only_parse(database, functamax, SEARCH):
         # translator = Translator()
 
         for entry in products:
-            if page >= functamax-100 and functamax % 100 != 0:
+            if page >= functamax-100 and functamax % 100 != 0 and functamax >= 100 :
                 break
 
             # hunt price
@@ -105,25 +118,19 @@ def auction_only_parse(database, functamax, SEARCH):
             Lout = titlec["href"]
             IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/",
                                  "")  # Auction ID Output Only
-
-
-            print(Tout)
-            print("Current Price in Yen " + pricec.text)
-            print(Lout)
-            print(page)
+            console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag)
     
-    
-            print("\n")
-    
-
             database.add_(IdOut, Tout)
-
+            
         page += 100
 
 
 def auction_bin_parse(database, functbmax, SEARCH):
     # Reinitialize page
     page = 1
+    
+    #Set Auction Context Flag
+    BINFlag = 1
 
 # PARSE BUY IT NOW SECOND
 
@@ -140,7 +147,7 @@ def auction_bin_parse(database, functbmax, SEARCH):
         # translator = Translator()
 
         for entry in products:
-            if page >= functbmax-100 and functbmax % 100 != 0:
+            if page >= functbmax-100 and functbmax % 100 != 0 and functbmax >= 100:
                 break
             # hunt price
             price = entry.find_all("span", {"class": "Product__priceValue u-textRed"})
@@ -160,10 +167,13 @@ def auction_bin_parse(database, functbmax, SEARCH):
             Lout = titlec["href"]
             IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/",
                                  "")  # Auction ID Output Only
+            
+            console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag)
 
             database.add_(IdOut,Tout)
 
         page += 100
+
 
 
 if __name__ == "__main__":
@@ -179,3 +189,5 @@ if __name__ == "__main__":
     auction_only_parse(database, functamax, SEARCH)
 
     auction_bin_parse(database, functbmax, SEARCH)
+    
+    database.write_csv()
