@@ -11,9 +11,7 @@ from bs4 import BeautifulSoup
 import requests
 import database
 
-# Translator Flag, will crash if turned on and running 10K+ results
-
-TFlag = 0
+#Init Auction Context Flag
 
 BINFlag = 0
 

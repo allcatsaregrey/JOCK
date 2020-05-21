@@ -1,4 +1,4 @@
-# Author: Matthew C. McFee
+# Author: Matthew C. McFee,  Christian Vartanian
 # Description: Database generation and relevant methods to store,
 # manipulate, and reference auction IDs, and descriptions.
 
@@ -48,8 +48,8 @@ class jock_data_base():
 
     def write_csv(self):
 
-        with open("db.txt", "w") as outfile:
-            json.dump(self.db, outfile) 
+        with open("db.txt", "w", encoding='utf8') as outfile:
+            json.dump(self.db, outfile, ensure_ascii=False) 
 
 if __name__ == "__main__":
     print("Please run the main program file.")
