@@ -6,12 +6,9 @@
 #       Generate a function parsing class and the buy out can inherit
 #       the general parsers stuff.
 
-# import html5lib
-# import bs4 as bs
+
 from bs4 import BeautifulSoup
 import requests
-# from googletrans import Translator
-# import time
 import database
 
 # Translator Flag, will crash if turned on and running 10K+ results
@@ -25,8 +22,6 @@ def get_search_():
 
     return SEARCH
 
-
-SEARCH = input("Select a brand to search for: ")
 
 
 def auction_search_():
@@ -43,6 +38,8 @@ def auction_search_():
     auctionmaxint = int(auctionmax.text.replace("件", "").replace(",", ""))
     print(auctionmaxint)
     print(binmaxint)
+    
+    return auctionmaxint, binmaxint
 
 
 def set_funct_max(auctionmaxint, binmaxint):
@@ -109,9 +106,19 @@ def auction_only_parse(database, functamax, SEARCH):
             IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/",
                                  "")  # Auction ID Output Only
 
-            database.add_(IdOut, Tout, Pout)
 
-            page += 100
+            print(Tout)
+            print("Current Price in Yen " + pricec.text)
+            print(Lout)
+            print(page)
+    
+    
+            print("\n")
+    
+
+            database.add_(IdOut, Tout)
+
+        page += 100
 
 
 def auction_bin_parse(database, functbmax, SEARCH):
@@ -154,9 +161,9 @@ def auction_bin_parse(database, functbmax, SEARCH):
             IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/",
                                  "")  # Auction ID Output Only
 
-            database.add_(IdOut, Tout, Pout)
+            database.add_(IdOut,Tout)
 
-            page += 100
+        page += 100
 
 
 if __name__ == "__main__":
@@ -164,8 +171,10 @@ if __name__ == "__main__":
     database = database.jock_data_base()
 
     SEARCH = get_search_()
-
-    functamax, functbmax = set_funct_max()
+    
+    auctionmaxint, binmaxint = auction_search_()
+    
+    functamax, functbmax = set_funct_max(auctionmaxint, binmaxint)
 
     auction_only_parse(database, functamax, SEARCH)
 
