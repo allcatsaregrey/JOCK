@@ -15,10 +15,10 @@ class jock_data_base():
 
         self.db = {}
 
-    def add_(self, id, desc):
+    def add_(self, id, desc, price, time):
 
         if id not in self.db:
-            self.db[id] = desc
+            self.db[id] = desc + price + time 
 
         else:
             print("Auction ID already present in database.")
@@ -49,7 +49,7 @@ class jock_data_base():
     def write_csv(self):
 
         with open("db.txt", "w", encoding='utf8') as outfile:
-            json.dump(self.db, outfile, ensure_ascii=False) 
+            json.dump(self.db, outfile, indent=4, ensure_ascii=False) 
 
 if __name__ == "__main__":
     print("Please run the main program file.")
