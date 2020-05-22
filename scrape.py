@@ -23,7 +23,7 @@ def get_search_():
 
 
 
-def auction_search_():
+def auction_search_(SEARCH):
 
     # PARSE AUCTIONS FIRST
     URL = "https://auctions.yahoo.co.jp/search/search?p=" + \
@@ -200,7 +200,7 @@ if __name__ == "__main__":
 
     SEARCH = get_search_()
     
-    auctionmaxint, binmaxint = auction_search_()
+    auctionmaxint, binmaxint = auction_search_(SEARCH)
     
     functamax, functbmax = set_funct_max(auctionmaxint, binmaxint)
 
