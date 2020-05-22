@@ -56,12 +56,13 @@ def set_funct_max(auctionmaxint, binmaxint):
     return functamax, functbmax
 
 
-def console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag):
+def console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag,TiOut):
             print(Tout)
             if BINFlag == 1:
                 print("BIN " + pricec.text)
             else:
                 print("Current Price in Yen " + pricec.text)
+            print(TiOut)
             print(Lout)
             print(page)
             print("\n")
@@ -91,7 +92,6 @@ def auction_only_parse(database, functamax, SEARCH):
             # hunt price
             price = entry.find_all("span",
                                    {"class": "Product__priceValue u-textRed"})
-
             pricec = price[0]
 
             # hunt price
@@ -103,21 +103,30 @@ def auction_only_parse(database, functamax, SEARCH):
             titlec = title[0]
 
             # hunt time remaining
-            timel = entry.find("span", {"class": "Product__time"})
-            timec = str(timel)
+            timel = entry.find_all("span", {"class":"Product__time"})
+            
+            if len(timel) >> 0:
+            
+                timec = timel[0]
+                TiOut = timec.text.replace('日'," Days").replace('時間'," Hours").replace('分'," Minutes ").replace('秒'," Seconds ")
+            
+            else:
+                
+                timec = 0
+                TiOut = " Null"
             
             # hunt bidders
             # bids = entry.find_all("span", {"class": "Product__bid"})
             # bidc = bids[0]
 
             # Prep for output
-            Pout = pricec.text
+            Pout = pricec.text.replace(",","")
             Tout = titlec["title"]
             Lout = titlec["href"]
             IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/",
                                  "")  # Auction ID Output Only
-            TiOut = timec.replace('日'," Days").replace('時間'," Hours").replace('分'," Minutes ").replace('秒'," Seconds ")
-            console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag)
+            
+            console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag, TiOut)
     
             database.add_(IdOut, Tout,Pout, TiOut)
             
@@ -152,25 +161,34 @@ def auction_bin_parse(database, functbmax, SEARCH):
             price = entry.find_all("span", {"class": "Product__priceValue u-textRed"})
             pricec = price[0]
 
-            # hunt price
-            # bprice = entry.find_all("span", {"class": "Product__priceValue"})
-            # bpricec = bprice[0]
-
+            
+            timel = entry.find_all("span", {"class":"Product__time"})
+            
+            if len(timel) >> 0:
+            
+                timec = timel[0]
+                TiOut = timec.text.replace('日'," Days").replace('時間'," Hours").replace('分'," Minutes ").replace('秒'," Seconds ")
+            
+            else:
+                
+                timec = 0
+                TiOut = "Null"
+                
             # hunt title
             title = entry.find_all("a", {"class": "Product__titleLink"})
             titlec = title[0]
 
             # Prep for output
-            Pout = pricec.text
+            Pout = pricec.text.replace(",","")
             Tout = titlec["title"]
             TiOut = timec.text.replace('日'," Days").replace('時間'," Hours").replace('分'," Minutes ").replace('秒'," Seconds ")
             Lout = titlec["href"]
             IdOut = Lout.replace("https://page.auctions.yahoo.co.jp/jp/auction/",
                                  "")  # Auction ID Output Only
             
-            console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag)
+            console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag,TiOut)
 
-            database.add_(IdOut,Tout,Pout,Tout)
+            database.add_(IdOut,Tout,Pout,TiOut)
 
         page += 100
 
