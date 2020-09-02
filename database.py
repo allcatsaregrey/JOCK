@@ -40,7 +40,8 @@ class jock_data_base():
             for keywd in keywds:
                 if keywd in desc.split():
                     id_matches.append(id)
-        return id_matches
+            total = len(id_matches)
+        return id_matches, total
 
     def reinit_(self):
 

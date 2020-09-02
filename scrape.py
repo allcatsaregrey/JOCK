@@ -8,12 +8,40 @@
 
 
 from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs 
 import requests
+import random
 import database
 
 #Init Auction Context Flag
 
 BINFlag = 0
+
+def get_free_proxies(proxies):
+    url = "https://free-proxy-list.net/"
+    # get the HTTP response and construct soup object
+    soup = bs(requests.get(url).content, "html.parser")
+    
+    for row in soup.find("table", attrs={"id": "proxylisttable"}).find_all("tr")[1:]:
+        tds = row.find_all("td")
+        try:
+            ip = tds[0].text.strip()
+            port = tds[1].text.strip()
+            host = f"{ip}:{port}"
+            proxies.append(host)
+        except IndexError:
+            continue
+    return proxies
+
+def get_session(proxies):
+    # construct an HTTP session
+    session = requests.Session()
+    # choose one random proxy
+    proxy = random.choice(proxies)
+    session.proxies = {"http": proxy, "https": proxy}
+    print(proxy)
+    return session, proxy
+
 
 def get_search_():
 
@@ -23,12 +51,12 @@ def get_search_():
 
 
 
-def auction_search_(SEARCH):
+def auction_search_(SEARCH,proxy):
 
     # PARSE AUCTIONS FIRST
     URL = "https://auctions.yahoo.co.jp/search/search?p=" + \
         SEARCH + "&va="+SEARCH+"&fixed=2&exflg=0&b=1&n=100"
-    r = requests.get(URL)
+    r = requests.get(URL,proxy)
     soup = BeautifulSoup(r.content, 'html5lib')
     searchtab = soup.find_all("span", {"class": "Tab__subText"})
     auctionmax = searchtab[1]
@@ -67,7 +95,7 @@ def console_print(Pout,Tout,Lout,IdOut,pricec,page,BINFlag,TiOut):
             print(page)
             print("\n")
     
-def auction_only_parse(database, functamax, SEARCH):
+def auction_only_parse(database, functamax, SEARCH,proxy):
 
     # Initialize page shift index variable
     page = 1
@@ -78,7 +106,7 @@ def auction_only_parse(database, functamax, SEARCH):
         pagestr = str(page)
         URL = "https://auctions.yahoo.co.jp/search/search?p=" + SEARCH + \
             "&va="+SEARCH+"&fixed=2&exflg=0&b=" + pagestr + "&n=100"
-        r = requests.get(URL)
+        r = requests.get(URL,proxy)
         soup = BeautifulSoup(r.content, 'html5lib')
         products = soup.find_all("li", {"class": "Product"})
         # titles = soup.find_all("a", {"class": "Product__titleLink"})
@@ -133,7 +161,7 @@ def auction_only_parse(database, functamax, SEARCH):
         page += 100
 
 
-def auction_bin_parse(database, functbmax, SEARCH):
+def auction_bin_parse(database, functbmax, SEARCH, proxy):
     # Reinitialize page
     page = 1
     
@@ -147,7 +175,7 @@ def auction_bin_parse(database, functbmax, SEARCH):
         pagestr = str(page)
         URL = "https://auctions.yahoo.co.jp/search/search?p=" + SEARCH + \
             "&va="+SEARCH+"&fixed=3&exflg=0&b=" + pagestr + "&n=100"
-        r = requests.get(URL)
+        r = requests.get(URL,proxy)
         soup = BeautifulSoup(r.content, 'html5lib')
         products = soup.find_all("li", {"class": "Product"})
         # titles = soup.find_all("a", {"class": "Product__titleLink"})
@@ -195,17 +223,28 @@ def auction_bin_parse(database, functbmax, SEARCH):
 
 
 if __name__ == "__main__":
+    
+    
+    proxies = [] 
+    
+    get_free_proxies()
+    
+    proxy = random.choice(proxies)
+
+    session = requests.Session()
+    
+    get_session(proxies)
 
     database = database.jock_data_base()
 
     SEARCH = get_search_()
     
-    auctionmaxint, binmaxint = auction_search_(SEARCH)
+    auctionmaxint, binmaxint = auction_search_(SEARCH,proxy)
     
     functamax, functbmax = set_funct_max(auctionmaxint, binmaxint)
 
-    auction_only_parse(database, functamax, SEARCH)
+    auction_only_parse(database, functamax, SEARCH, proxy)
 
-    auction_bin_parse(database, functbmax, SEARCH)
+    auction_bin_parse(database, functbmax, SEARCH, proxy)
     
     database.write_csv()
